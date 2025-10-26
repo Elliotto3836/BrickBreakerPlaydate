@@ -1,10 +1,31 @@
 import "CoreLibs/graphics"
 import "CoreLibs/object"
 import "CoreLibs/sprites"
+import "CoreLibs/sound"
 
 local gfx <const> = playdate.graphics
+local snd <const> = playdate.sound
 
 local SCREEN_W, SCREEN_H = 400, 240
+
+-- sounds
+local synth = snd.synth.new(snd.kWaveSquare)
+
+local function playBounceSound()
+    synth:playNote(880, 0.05) 
+end
+
+local function playBrickSound()
+    synth:playNote(660, 0.08) 
+end
+
+local function playGameOverSound()
+    synth:playNote(220, 0.3)  
+end
+
+local function playWinSound()
+    synth:playNote(1320, 0.3) 
+end
 
 -- Gameplay variables
 local paddle = { x = 170, y = 200, width = 60, height = 10 }
@@ -116,13 +137,18 @@ function playdate.update()
     if ball.x - ball.radius < 0 then
         ball.x = ball.radius
         ball.dx = -ball.dx
+        playBounceSound()
     elseif ball.x + ball.radius > SCREEN_W then
         ball.x = SCREEN_W - ball.radius
         ball.dx = -ball.dx
+        playBounceSound()
+
     end
     if ball.y - ball.radius < 0 then
         ball.y = ball.radius
         ball.dy = -ball.dy
+        playBounceSound()
+
     end
 
     -- Bounce paddle with angle based on hit position
@@ -150,6 +176,7 @@ function playdate.update()
                ball.dx = ball.dx * 1.03
                ball.dy = ball.dy * 1.03
                score = score + 1
+               playBrickSound()
                if score > highScore then
                    highScore = score
                    saveSave()
@@ -163,6 +190,7 @@ function playdate.update()
         lives = lives - 1
         if lives <= 0 then
             gameState = "gameover"
+            playGameOverSound()
             if score > highScore then
                 highScore = score
                 saveSave()
@@ -177,6 +205,7 @@ function playdate.update()
         gameState = "win"
         if score > highScore then
             highScore = score
+            playWinSound()
             saveSave()
         end
     end
